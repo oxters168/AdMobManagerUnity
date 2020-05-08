@@ -23,24 +23,48 @@ public class AdUnit
 
     public void Initialize(bool test)
     {
+        string customId;
+        if (adType == AdType.banner)
+        {
+            if (test)
+            {
+                #if UNITY_ANDROID
+                    customId = "ca-app-pub-3940256099942544/6300978111";
+                #elif UNITY_IPHONE
+                    customId = "ca-app-pub-3940256099942544/2934735716";
+                #else
+                    customId = "unexpected_platform";
+                #endif
+            }
+            else
+                customId = adId;
+        }
+        else //Else is interstitial
+        {
+            if (test)
+            {
+                #if UNITY_ANDROID
+                    customId = "ca-app-pub-3940256099942544/1033173712";
+                #elif UNITY_IPHONE
+                    customId = "ca-app-pub-3940256099942544/4411468910";
+                #else
+                    customId = "unexpected_platform";
+                #endif
+            }
+            else
+                customId = adId;
+        }
+
+        Initialize(customId);
+    }
+    public void Initialize(string customId)
+    {
+        adId = customId;
+
         if (adType == AdType.banner)
         {
             if (bannerAd != null)
                 Destroy();
-
-            string adUnitId;
-            if (test)
-            {
-                #if UNITY_ANDROID
-                    adUnitId = "ca-app-pub-3940256099942544/6300978111";
-                #elif UNITY_IPHONE
-                    adUnitId = "ca-app-pub-3940256099942544/2934735716";
-                #else
-                    adUnitId = "unexpected_platform";
-                #endif
-            }
-            else
-                adUnitId = adId;
 
             AdSize currentSize;
             switch (bannerAdSize)
@@ -64,28 +88,14 @@ public class AdUnit
                     currentSize = new AdSize(customAdSize.x, customAdSize.y);
                     break;
             }
-            bannerAd = new BannerView(adUnitId, currentSize, bannerAdPosition);
+            bannerAd = new BannerView(adId, currentSize, bannerAdPosition);
         }
         else if (adType == AdType.interstitial)
         {
             if (interstitialAd != null)
                 Destroy();
 
-            string adUnitId;
-            if (test)
-            {
-                #if UNITY_ANDROID
-                    adUnitId = "ca-app-pub-3940256099942544/1033173712";
-                #elif UNITY_IPHONE
-                    adUnitId = "ca-app-pub-3940256099942544/4411468910";
-                #else
-                    adUnitId = "unexpected_platform";
-                #endif
-            }
-            else
-                adUnitId = adId;
-
-            interstitialAd = new InterstitialAd(adUnitId);
+            interstitialAd = new InterstitialAd(adId);
             interstitialAd.OnAdClosed += InterstitialAd_OnAdClosed;
             interstitialAd.OnAdFailedToLoad += InterstitialAd_OnAdFailedToLoad;
         }
@@ -94,8 +104,6 @@ public class AdUnit
 
         if (startShown)
             Show();
-        //else
-        //    Hide();
     }
 
     private void InterstitialAd_OnAdFailedToLoad(object sender, AdFailedToLoadEventArgs e)

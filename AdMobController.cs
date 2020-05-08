@@ -5,6 +5,8 @@ public class AdMobController : MonoBehaviour
 {
     private static AdMobController admobControllerInScene;
 
+    [Tooltip("If set to true, will retrieve ad ids from Json file located in 'Assets/Resources/AdMobData/AdIds.json'")]
+    public bool fromJson;
     public string appId;
     public bool testAds = true;
 
@@ -16,21 +18,26 @@ public class AdMobController : MonoBehaviour
     }
     private void Start()
     {
-        string currentAppId;
         if (testAds)
         {
             #if UNITY_ANDROID
-                currentAppId = "ca-app-pub-3940256099942544~3347511713";
+                appId = "ca-app-pub-3940256099942544~3347511713";
             #elif UNITY_IPHONE
-                currentAppId = "ca-app-pub-3940256099942544~1458002511";
+                appId = "ca-app-pub-3940256099942544~1458002511";
             #else
-                currentAppId = "unexpected_platform";
+                appId = "unexpected_platform";
             #endif
         }
-        else
-            currentAppId = appId;
+        else if (fromJson)
+        {
+            var jsonTextFile = Resources.Load<TextAsset>("AdMobData/AdIds");
+            AdMobData admobData = JsonUtility.FromJson<AdMobData>(jsonTextFile.text);
+            appId = admobData.appId;
+            for (int i = 0; i < adUnits.Length; i++)
+                adUnits[i].adId = admobData.adIds.stringArray[i];
+        }
 
-        MobileAds.Initialize(currentAppId);
+        MobileAds.Initialize(appId);
 
         foreach (AdUnit adUnit in adUnits)
             adUnit.Initialize(testAds);
